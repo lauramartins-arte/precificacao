@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Preços e Lucratividade - Velas Artesanais</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            line-height: 1.6;
+            color: #2c3e50;
+            background: linear-gradient(135deg, #f4f1eb 0%, #e8e0d5 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            padding: 40px 0;
+            background: linear-gradient(135deg, #2e8b57 0%, #3cb371 100%);
+            color: white;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 10px,
+                rgba(255,255,255,0.05) 10px,
+                rgba(255,255,255,0.05) 20px
+            );
+            animation: shimmer 4s linear infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            position: relative;
+            z-index: 1;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        .tabs {
+            display: flex;
+            background: white;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            overflow: hidden;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            flex: 1;
+            min-width: 150px;
+            padding: 15px 10px;
+            background: #f8f9fa;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            color: #2c3e50;
+            text-align: center;
+        }
+
+        .tab:hover {
+            background: #e9ecef;
+        }
+
+        .tab.active {
+            background: #2e8b57;
+            color: white;
+        }
+
+        .content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .calculator {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border: 2px dashed #2e8b57;
+        }
+
+        .calculator-inputs {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #2e8b57;
+        }
+
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .input-group input:focus, .input-group select:focus {
+            border-color: #2e8b57;
+            outline: none;
+        }
+
+        .result-display {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 15px;
+            border: 2px solid #2e8b57;
+        }
+
+        .cost-breakdown {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .cost-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+            border-left: 4px solid #2e8b57;
+        }
+
+        .cost-item h4 {
+            color: #2e8b57;
+            margin-bottom: 10px;
+        }
+
+        .cost-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .profit-indicator {
+            text-align: center;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        .profit-good {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+        }
+
+        .profit-ok {
+            background: #fff3cd;
+            color: #856404;
+            border: 2px solid #ffeaa7;
+        }
+
+        .profit-poor {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+        }
+
+        .strategy-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .strategy-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid #2e8b57;
+            transition: transform 0.3s ease;
+        }
+
+        .strategy-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .strategy-card h3 {
+            color: #2e8b57;
+            margin-bottom: 15px;
+        }
+
+        .strategy-card .impact {
+            background: #f8f9fa;
+            padding: 8px 12px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+
+        .impact.high {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .impact.medium {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .impact.low {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .pricing-matrix {
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+
+        .pricing-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .pricing-table th {
+            background: #2e8b57;
+            color: white;
+            padding: 15px;
+            text-align: left;
+        }
+
+        .pricing-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .pricing-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .btn {
+            background: #2e8b57;
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            display: inline-block;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            background: #3cb371;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .tip-box {
+            background: linear-gradient(135deg, #2e8b57 0%, #3cb371 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .warning-box {
+            background: #fff3cd;
+            color: #856404;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #ffc107;
+            margin: 15px 0;
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .comparison-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .before {
+            border-left: 5px solid #dc3545;
+        }
+
+        .after {
+            border-left: 5px solid #28a745;
+        }
+
+        @media (max-width: 768px) {
+            .tabs {
+                flex-direction: column;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .calculator-inputs {
+                grid-template-columns: 1fr;
+            }
+            
+            .cost-breakdown {
+                grid-template-columns: 1fr;
+            }
+            
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Calculadora de Preços e Lucratividade</h1>
+            <p>Domine os custos e maximize os lucros das suas velas artesanais</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="showSection('custos', this)">Cálculo de Custos</button>
+            <button class="tab" onclick="showSection('precificacao', this)">Precificação</button>
+            <button class="tab" onclick="showSection('estrategias', this)">Estratégias</button>
+            <button class="tab" onclick="showSection('comparacao', this)">Análise Comparativa</button>
+            <button class="tab" onclick="showSection('dicas', this)">Dicas Avançadas</button>
+        </div>
+
+        <div class="content">
+            <!-- Seção Cálculo de Custos -->
+            <div id="custos" class="section active">
+                <h2>Calculadora Completa de Custos</h2>
+                <p>Calcule o custo real de produção considerando todos os componentes:</p>
+                
+                <div class="calculator">
+                    <h3>Custos de Materiais Diretos</h3>
+                    <div class="calculator-inputs">
+                        <div class="input-group">
+                            <label for="waxWeight">Peso da Cera (g)</label>
+                            <input type="number" id="waxWeight" placeholder="Ex: 200" oninput="calculateCosts()">
+                        </div>
+                        <div class="input-group">
+                            <label for="waxPrice">Preço da Cera (R$/kg)</label>
+                            <input type="number" step="0.01" id="waxPrice" placeholder="Ex: 25.00" oninput="calculateCosts()">
+                        </div>
+                        <div class="input-group">
+                            <label for="oilAmount">Óleo Essencial (ml)</label>
+                            <input type="number" step="0.1" id="oilAmount" placeholder="Ex: 15" oninput="calculateCosts()">
+                        </div>
+                        <div class="input-group">
+                            <label for="oilPrice">Preço Óleo (R$/ml)</label>
+                            <input type="number" step="0.01" id="oilPrice" placeholder="Ex: 2.50" oninput="calculateCosts()">
+                        </div>
+                        <div class="input-group">
+                            <label for="wickCost">Custo do Pavio (R$)</label>
+                            <input type="number" step="0.01" id="wickCost" placeholder="Ex: 0.50" oninput="calculateCosts()">
+                        </div>
+                        <div class="input-group">
+                            <label for="containerCost">Recipiente (R$)</label>
+                            <input type="number" step="0.01" id="containerCost" placeholder="Ex: 3.00" oninput="calculateCosts()">
+                        </div>
+                        <div class="input-group">
+                            <label for="colorantCost">Corante (R$)</label>
+                            <input type="number" step="0.01" id="colorantCost" placeholder="Ex: 0.30" oninput="calculateCosts()">
+                        </div>
+                        <div class="input-group">
+                            <label for="packagingCost">Embalagem (R$)</label>
+                            <input type="number" step="0.01" id="packagingCost" placeholder="Ex: 1.20" oninput="calculateCosts()">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="calculator">
+                    <h3>Custos Indiretos e Operacionais</h3>
+                    <div class="calculator-inputs">
+                        <div class="input-group">
+                            <label for="laborTime">Tempo de Produção (min)</label>
+                            <input type="number" id="laborTime" placeholder="Ex: 45" oninput="calculateCosts()">
+                        </div>
+                        <div class="input-group">
+                            <label for="hourlyRate">Valor Hora Trabalho (R$)</label>
+                            <input type="number" step="0.01" id="hourlyRate" placeholder="Ex: 25.00" oninput="calculateCosts()">
+                        </div>
+                        <div class="input-group">
+                            <label for="overheadPercent">Custos Fixos (%)</label>
+                            <input type="number" step="0.1" id="overheadPercent" placeholder="Ex: 15" oninput="calculateCosts()">
+                            <small>Aluguel, energia, equipamentos</small>
+                        </div>
+                        <div class="input-group">
+                            <label for="wastePercent">Perdas/Retrabalho (%)</label>
+                            <input type="number" step="0.1" id="wastePercent" placeholder="Ex: 5" oninput="calculateCosts()">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="cost-breakdown" id="costBreakdown">
+                    <!-- Resultados serão inseridos aqui -->
+                </div>
+
+                <div class="result-display" id="totalCostResult">
+                    Preencha os campos para calcular o custo total
+                </div>
+            </div>
+
+            <!-- Seção Precificação -->
+            <div id="precificacao" class="section">
+                <h2>Estratégias de Precificação</h2>
+                <p>Defina o preço de venda considerando margem de lucro e posicionamento de mercado:</p>
+                
+                <div class="calculator">
+                    <h3>Calculadora de Preço de Venda</h3>
+                    <div class="calculator-inputs">
+                        <div class="input-group">
+                            <label for="totalCostInput">Custo Total (R$)</label>
+                            <input type="number" step="0.01" id="totalCostInput" placeholder="Ex: 12.50" oninput="calculatePricing()">
+                        </div>
+                        <div class="input-group">
+                            <label for="profitMargin">Margem de Lucro (%)</label>
+                            <input type="number" step="1" id="profitMargin" placeholder="Ex: 150" oninput="calculatePricing()">
+                        </div>
+                        <div class="input-group">
+                            <label for="marketSegment">Segmento de Mercado</label>
+                            <select id="marketSegment" onchange="calculatePricing()">
+                                <option value="">Selecione...</option>
+                                <option value="premium">Premium (200-300%)</option>
+                                <option value="medio">Médio (100-200%)</option>
+                                <option value="economico">Econômico (50-100%)</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label for="competitorPrice">Preço Concorrência (R$)</label>
+                            <input type="number" step="0.01" id="competitorPrice" placeholder="Ex: 28.00" oninput="calculatePricing()">
+                        </div>
+                    </div>
+                    
+                    <div class="result-display" id="pricingResult">
+                        Insira o custo total e margem para calcular o preço
+                    </div>
+                    
+                    <div class="profit-indicator" id="profitIndicator">
+                        Aguardando cálculo
+                    </div>
+                </div>
+
+                <div class="pricing-matrix">
+                    <h3>Matriz de Preços por Margem</h3>
+                    <table class="pricing-table">
+                        <thead>
+                            <tr>
+                                <th>Custo Base</th>
+                                <th>Margem 100%</th>
+                                <th>Margem 150%</th>
+                                <th>Margem 200%</th>
+                                <th>Margem 250%</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pricingMatrix">
+                            <tr><td>R$ 8,00</td><td>R$ 16,00</td><td>R$ 20,00</td><td>R$ 24,00</td><td>R$ 28,00</td></tr>
+                            <tr><td>R$ 10,00</td><td>R$ 20,00</td><td>R$ 25,00</td><td>R$ 30,00</td><td>R$ 35,00</td></tr>
+                            <tr><td>R$ 12,00</td><td>R$ 24,00</td><td>R$ 30,00</td><td>R$ 36,00</td><td>R$ 42,00</td></tr>
+                            <tr><td>R$ 15,00</td><td>R$ 30,00</td><td>R$ 37,50</td><td>R$ 45,00</td><td>R$ 52,50</td></tr>
+                            <tr><td>R$ 18,00</td><td>R$ 36,00</td><td>R$ 45,00</td><td>R$ 54,00</td><td>R$ 63,00</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="warning-box">
+                    <strong>Atenção:</strong> A margem de lucro deve cobrir não apenas o lucro desejado, mas também impostos, comissões de venda, marketing e reserva para crescimento do negócio.
+                </div>
+            </div>
+
+            <!-- Seção Estratégias -->
+            <div id="estrategias" class="section">
+                <h2>Estratégias para Aumentar Lucratividade</h2>
+                <p>Implemente estas estratégias comprovadas para maximizar seus lucros:</p>
+                
+                <div class="strategy-grid">
+                    <div class="strategy-card">
+                        <h3>1. Otimização de Compras</h3>
+                        <p>Compre matérias-primas em maior quantidade para obter melhores preços unitários. Negocie prazos de pagamento mais longos.</p>
+                        <div class="impact high">Impacto: Alto - Redução de 15-25% nos custos</div>
+                    </div>
+                    
+                    <div class="strategy-card">
+                        <h3>2. Padronização de Produtos</h3>
+                        <p>Reduza a variedade inicial e foque em produtos com maior giro e margem. Isso reduz custos de estoque e produção.</p>
+                        <div class="impact high">Impacto: Alto - Aumento de 20-30% na eficiência</div>
+                    </div>
+                    
+                    <div class="strategy-card">
+                        <h3>3. Venda Direta ao Consumidor</h3>
+                        <p>Elimine intermediários vendendo online, em feiras ou através de redes sociais. Mantenha toda a margem para si.</p>
+                        <div class="impact high">Impacto: Alto - Aumento de 40-60% na margem</div>
+                    </div>
+                    
+                    <div class="strategy-card">
+                        <h3>4. Produtos Complementares</h3>
+                        <p>Ofereça produtos relacionados como aromatizadores, difusores ou kits de presente para aumentar o ticket médio.</p>
+                        <div class="impact medium">Impacto: Médio - Aumento de 25-35% no faturamento</div>
+                    </div>
+                    
+                    <div class="strategy-card">
+                        <h3>5. Automação de Processos</h3>
+                        <p>Invista em equipamentos que aceleram a produção e reduzem desperdícios. ROI típico em 6-12 meses.</p>
+                        <div class="impact medium">Impacto: Médio - Redução de 20-30% no tempo</div>
+                    </div>
+                    
+                    <div class="strategy-card">
+                        <h3>6. Precificação Dinâmica</h3>
+                        <p>Ajuste preços conforme demanda sazonal, eventos especiais e disponibilidade de matéria-prima.</p>
+                        <div class="impact medium">Impacto: Médio - Aumento de 10-20% na receita</div>
+                    </div>
+                    
+                    <div class="strategy-card">
+                        <h3>7. Parcerias Estratégicas</h3>
+                        <p>Estabeleça parcerias com decoradores, spas, hotéis e lojas especializadas para vendas em volume.</p>
+                        <div class="impact high">Impacto: Alto - Crescimento sustentável</div>
+                    </div>
+                    
+                    <div class="strategy-card">
+                        <h3>8. Programa de Fidelidade</h3>
+                        <p>Implemente sistemas de recompensa para clientes recorrentes, aumentando a frequência de compra.</p>
+                        <div class="impact medium">Impacto: Médio - Aumento de 15-25% na retenção</div>
+                    </div>
+                </div>
+
+                <div class="tip-box">
+                    <h3>Dica Fundamental</h3>
+                    <p>Implemente uma estratégia por vez e meça os resultados antes de passar para a próxima. Mudanças graduais são mais sustentáveis que transformações radicais.</p>
+                </div>
+            </div>
+
+            <!-- Seção Análise Comparativa -->
+            <div id="comparacao" class="section">
+                <h2>Análise Comparativa: Antes vs Depois</h2>
+                <p>Veja o impacto real das otimizações na lucratividade do seu negócio:</p>
+                
+                <div class="comparison-grid">
+                    <div class="comparison-card before">
+                        <h3>Cenário Atual (Antes)</h3>
+                        <div class="calculator-inputs">
+                            <div class="input-group">
+                                <label for="beforeRevenue">Faturamento Mensal (R$)</label>
+                                <input type="number" id="beforeRevenue" placeholder="Ex: 3000" oninput="calculateComparison()">
+                            </div>
+                            <div class="input-group">
+                                <label for="beforeCosts">Custos Totais (R$)</label>
+                                <input type="number" id="beforeCosts" placeholder="Ex: 2100" oninput="calculateComparison()">
+                            </div>
+                            <div class="input-group">
+                                <label for="beforeUnits">Unidades Vendidas</label>
+                                <input type="number" id="beforeUnits" placeholder="Ex: 120" oninput="calculateComparison()">
+                            </div>
+                        </div>
+                        <div id="beforeResults" class="result-display">
+                            Insira os dados atuais
+                        </div>
+                    </div>
+                    
+                    <div class="comparison-card after">
+                        <h3>Cenário Otimizado (Depois)</h3>
+                        <div class="calculator-inputs">
+                            <div class="input-group">
+                                <label for="costReduction">Redução de Custos (%)</label>
+                                <input type="number" id="costReduction" placeholder="Ex: 20" oninput="calculateComparison()">
+                            </div>
+                            <div class="input-group">
+                                <label for="priceIncrease">Aumento de Preço (%)</label>
+                                <input type="number" id="priceIncrease" placeholder="Ex: 15" oninput="calculateComparison()">
+                            </div>
+                            <div class="input-group">
+                                <label for="salesIncrease">Aumento de Vendas (%)</label>
+                                <input type="number" id="salesIncrease" placeholder="Ex: 25" oninput="calculateComparison()">
+                            </div>
+                        </div>
+                        <div id="afterResults" class="result-display">
+                            Resultados aparecerão aqui
+                        </div>
+                    </div>
+                </div>
+
+                <div class="result-display" id="comparisonSummary" style="text-align: center; font-size: 1.2em;">
+                    Complete os dados para ver o impacto das otimizações
+                </div>
+
+                <div class="strategy-grid">
+                    <div class="strategy-card">
+                        <h3>Metas Realistas de Crescimento</h3>
+                        <ul>
+                            <li><strong>Mês 1-3:</strong> Redução de 10-15% nos custos</li>
+                            <li><strong>Mês 4-6:</strong> Aumento de 15-20% no preço médio</li>
+                            <li><strong>Mês 7-12:</strong> Crescimento de 30-50% nas vendas</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="strategy-card">
+                        <h3>Indicadores de Sucesso</h3>
+                        <ul>
+                            <li><strong>Margem de Lucro:</strong> > 60%</li>
+                            <li><strong>Tempo de Produção:</strong> < 30 min/vela</li>
+                            <li><strong>Taxa de Rejeição:</strong> < 5%</li>
+                            <li><strong>Fidelização:</strong> > 40% clientes recorrentes</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Seção Dicas Avançadas -->
+            <div id="dicas" class="section">
+                <h2>Dicas Avançadas de Lucratividade</h2>
+                <p>Estratégias sofisticadas para empresários experientes:</p>
+                
+                <div class="strategy-grid">
+                    <div class="strategy-card">
+                        <h3>Análise ABC de Produtos</h3>
+                        <p>Classifique produtos por lucratividade:</p>
+                        <ul>
+                            <li><strong>Classe A:</strong> 20% dos produtos = 80% do lucro</li>
+                            <li><strong>Classe B:</strong> 30% dos produtos = 15% do lucro</li>
+                            <li><strong>Classe C:</strong> 50% dos produtos = 5% do lucro</li>
+                        </ul>
+                        <p><strong>Ação:</strong> Foque recursos nos produtos Classe A e considere descontinuar Classe C.</p>
+                    </div>
+                    
+                    <div class="strategy-card">
+                        <h3>Precificação Psicológica</h3>
+                        <p>Use preços que influenciam a percepção do cliente:</p>
+                        <ul>
+                            <li><strong>R$ 29,90</strong> ao invés de R$ 30,00</li>
+                            <li><strong>R$ 47,00</strong> ao invés de R$ 45,00 (transmite qualidade)</li>
+                            <li><strong>Números ímpares</strong> são percebidos como mais exclusivos</li>
+                        </ul>
+                        <p><strong>Resultado:</strong> Aumento de 8-15% na aceitação de preços.</p>
+                    </div>
+                    
+                    <div class="strategy-card">
+                        <h3>Bundling Estratégico</h3>
+                        <p>Combine produtos para aumentar ticket médio:</p>
+                        <ul>
+                            <li><strong>Kit Básico:</strong> 1 vela + suporte (markup 40%)</li>
+                            <li><strong>Kit Premium:</strong> 3 velas + acessórios (markup 60%)</li>
+                            <li><strong>Kit Presente:</strong> Embalagem especial (markup 80%)</li>
+                        </ul>
+                        <p><strong>Impacto:</strong> Aumento médio de 35% no valor por transação.</p>
+                    </div>
+                    
+                    <div class="strategy-card">
+                        <h3>Sazonalidade Inteligente</h3>
+                        <p>Ajuste produção e preços conforme demanda:</p>
+                        <ul>
+                            <li><strong>Alta temporada:</strong> Dezembro, Dia dos Namorados (preço +20%)</li>
+                            <li><strong>Média temporada:</strong> Dia das Mães, Natal (preço normal)</li>
+                            <li><strong>Baixa temporada:</strong> Jan-Mar (promoções, liquidação)</li>
+                        </ul>
+                        <p><strong>Estratégia:</strong> Produza 40% do estoque anual nos 3 meses de alta.</p>
+                    </div>
+                    
+                    <div class="strategy-card">
+                        <h3>Análise de Ponto de Equilíbrio</h3>
+                        <p>Calcule quantas unidades precisa vender para não ter prejuízo:</p>
+                        <p><strong>Fórmula:</strong> Custos Fixos ÷ (Preço de Venda - Custo Variável)</p>
+                        <p><strong>Exemplo:</strong> R$ 2.000 ÷ (R$ 30 - R$ 12) = 112 velas/mês</p>
+                        <p><strong>Meta:</strong> Venda sempre 150% do ponto de equilíbrio.</p>
+                    </div>
+                    
+                    <div class="strategy-card">
+                        <h3>Segmentação por Valor</h3>
+                        <p>Crie linhas de produtos para diferentes públicos:</p>
+                        <ul>
+                            <li><strong>Linha Econômica:</strong> Margem 80% (R$ 15-25)</li>
+                            <li><strong>Linha Intermediária:</strong> Margem 120% (R$ 25-40)</li>
+                            <li><strong>Linha Premium:</strong> Margem 200% (R$ 40-70)</li>
+                        </ul>
+                        <p><strong>Distribuição ideal:</strong> 30% econômica, 50% intermediária, 20% premium.</p>
+                    </div>
+                    
+                    <div class="strategy-card">
+                        <h3>Gestão de Fluxo de Caixa</h3>
+                        <p>Otimize prazos para manter capital de giro saudável:</p>
+                        <ul>
+                            <li><strong>Fornecedores:</strong> Negocie 30-45 dias para pagamento</li>
+                            <li><strong>Clientes:</strong> À vista ou 7 dias no máximo</li>
+                            <li><strong>Estoque:</strong> Giro mínimo de 6x por ano</li>
+                        </ul>
+                        <p><strong>Meta:</strong> Capital de giro equivalente a 45 dias de vendas.</p>
+                    </div>
+                </div>
+
+                <div class="tip-box">
+                    <h3>Checklist Mensal de Lucratividade</h3>
+                    <ul style="list-style: none; padding: 0;">
+                        <li>□ Revisar custos de matérias-primas</li>
+                        <li>□ Analisar produtos mais e menos lucrativos</li>
+                        <li>□ Ajustar preços conforme inflação</li>
+                        <li>□ Calcular ticket médio por cliente</li>
+                        <li>□ Verificar giro de estoque</li>
+                        <li>□ Avaliar canais de venda mais rentáveis</li>
+                        <li>□ Identificar oportunidades de upsell</li>
+                        <li>□ Monitorar concorrência</li>
+                    </ul>
+                </div>
+
+                <div class="warning-box">
+                    <strong>Lembre-se:</strong> Lucratividade sustentável é mais importante que crescimento rápido. Prefira margens sólidas a volumes altos com margens baixas.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showSection(sectionId, clickedTab) {
+            // Hide all sections
+            const sections = document.querySelectorAll('.section');
+            sections.forEach(section => section.classList.remove('active'));
+            
+            // Hide all tabs
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            
+            // Show selected section
+            document.getElementById(sectionId).classList.add('active');
+            
+            // Activate the clicked tab
+            clickedTab.classList.add('active');
+        }
+
+        function calculateCosts() {
+            const waxWeight = parseFloat(document.getElementById('waxWeight').value) || 0;
+            const waxPrice = parseFloat(document.getElementById('waxPrice').value) || 0;
+            const oilAmount = parseFloat(document.getElementById('oilAmount').value) || 0;
+            const oilPrice = parseFloat(document.getElementById('oilPrice').value) || 0;
+            const wickCost = parseFloat(document.getElementById('wickCost').value) || 0;
+            const containerCost = parseFloat(document.getElementById('containerCost').value) || 0;
+            const colorantCost = parseFloat(document.getElementById('colorantCost').value) || 0;
+            const packagingCost = parseFloat(document.getElementById('packagingCost').value) || 0;
+            const laborTime = parseFloat(document.getElementById('laborTime').value) || 0;
+            const hourlyRate = parseFloat(document.getElementById('hourlyRate').value) || 0;
+            const overheadPercent = parseFloat(document.getElementById('overheadPercent').value) || 0;
+            const wastePercent = parseFloat(document.getElementById('wastePercent').value) || 0;
+            
+            // Calculate material costs
+            const waxCost = (waxWeight / 1000) * waxPrice;
+            const oilCost = oilAmount * oilPrice;
+            const materialCosts = waxCost + oilCost + wickCost + containerCost + colorantCost + packagingCost;
+            
+            // Calculate labor cost
+            const laborCost = (laborTime / 60) * hourlyRate;
+            
+            // Calculate overhead
+            const overheadCost = materialCosts * (overheadPercent / 100);
+            
+            // Calculate waste
+            const wasteCost = materialCosts * (wastePercent / 100);
+            
+            // Total cost
+            const totalCost = materialCosts + laborCost + overheadCost + wasteCost;
+            
+            // Update breakdown display
+            const breakdown = document.getElementById('costBreakdown');
+            breakdown.innerHTML = `
+                <div class="cost-item">
+                    <h4>Materiais</h4>
+                    <div class="cost-value">R$ ${materialCosts.toFixed(2)}</div>
+                </div>
+                <div class="cost-item">
+                    <h4>Mão de Obra</h4>
+                    <div class="cost-value">R$ ${laborCost.toFixed(2)}</div>
+                </div>
+                <div class="cost-item">
+                    <h4>Custos Fixos</h4>
+                    <div class="cost-value">R$ ${overheadCost.toFixed(2)}</div>
+                </div>
+                <div class="cost-item">
+                    <h4>Perdas</h4>
+                    <div class="cost-value">R$ ${wasteCost.toFixed(2)}</div>
+                </div>
+            `;
+            
+            // Update total cost display
+            const totalDisplay = document.getElementById('totalCostResult');
+            totalDisplay.innerHTML = `
+                <h3>Custo Total por Vela</h3>
+                <div style="font-size: 2em; color: #2e8b57; font-weight: bold;">R$ ${totalCost.toFixed(2)}</div>
+                <p>Custo por grama: R$ ${(totalCost / waxWeight).toFixed(3)}</p>
+            `;
+            
+            // Update total cost input in pricing section
+            document.getElementById('totalCostInput').value = totalCost.toFixed(2);
+            calculatePricing();
+        }
+
+        function calculatePricing() {
+            const totalCost = parseFloat(document.getElementById('totalCostInput').value) || 0;
+            const profitMargin = parseFloat(document.getElementById('profitMargin').value) || 0;
+            const competitorPrice = parseFloat(document.getElementById('competitorPrice').value) || 0;
+            
+            if (totalCost > 0 && profitMargin > 0) {
+                const sellingPrice = totalCost * (1 + profitMargin / 100);
+                const profitAmount = sellingPrice - totalCost;
+                
+                // Update pricing result
+                const pricingResult = document.getElementById('pricingResult');
+                pricingResult.innerHTML = `
+                    <h4>Preço de Venda Sugerido</h4>
+                    <div style="font-size: 2em; color: #2e8b57; font-weight: bold;">R$ ${sellingPrice.toFixed(2)}</div>
+                    <p>Lucro por unidade: R$ ${profitAmount.toFixed(2)}</p>
+                    <p>Margem de contribuição: ${profitMargin}%</p>
+                `;
+                
+                // Update profit indicator
+                const profitIndicator = document.getElementById('profitIndicator');
+                let indicatorClass, message;
+                
+                if (profitMargin >= 150) {
+                    indicatorClass = 'profit-good';
+                    message = '✅ Excelente margem de lucro!';
+                } else if (profitMargin >= 100) {
+                    indicatorClass = 'profit-ok';
+                    message = '⚠️ Margem boa, mas pode melhorar';
+                } else {
+                    indicatorClass = 'profit-poor';
+                    message = '❌ Margem baixa - reavalie custos';
+                }
+                
+                profitIndicator.className = `profit-indicator ${indicatorClass}`;
+                profitIndicator.textContent = message;
+                
+                // Compare with competitor
+                if (competitorPrice > 0) {
+                    const comparison = ((sellingPrice - competitorPrice) / competitorPrice * 100).toFixed(1);
+                    const compText = sellingPrice > competitorPrice ? 
+                        `${comparison}% acima da concorrência` : 
+                        `${Math.abs(comparison)}% abaixo da concorrência`;
+                    
+                    pricingResult.innerHTML += `<p><strong>Posicionamento:</strong> ${compText}</p>`;
+                }
+            }
+        }
+
+        function calculateComparison() {
+            const beforeRevenue = parseFloat(document.getElementById('beforeRevenue').value) || 0;
+            const beforeCosts = parseFloat(document.getElementById('beforeCosts').value) || 0;
+            const beforeUnits = parseFloat(document.getElementById('beforeUnits').value) || 0;
+            const costReduction = parseFloat(document.getElementById('costReduction').value) || 0;
+            const priceIncrease = parseFloat(document.getElementById('priceIncrease').value) || 0;
+            const salesIncrease = parseFloat(document.getElementById('salesIncrease').value) || 0;
+            
+            if (beforeRevenue > 0 && beforeCosts > 0) {
+                // Before calculations
+                const beforeProfit = beforeRevenue - beforeCosts;
+                const beforeMargin = (beforeProfit / beforeRevenue * 100);
+                const beforeAvgPrice = beforeUnits > 0 ? beforeRevenue / beforeUnits : 0;
+                
+                // Update before results
+                const beforeResults = document.getElementById('beforeResults');
+                beforeResults.innerHTML = `
+                    <strong>Lucro:</strong> R$ ${beforeProfit.toFixed(2)}<br>
+                    <strong>Margem:</strong> ${beforeMargin.toFixed(1)}%<br>
+                    <strong>Preço médio:</strong> R$ ${beforeAvgPrice.toFixed(2)}
+                `;
+                
+                // After calculations
+                const newCosts = beforeCosts * (1 - costReduction / 100);
+                const newAvgPrice = beforeAvgPrice * (1 + priceIncrease / 100);
+                const newUnits = beforeUnits * (1 + salesIncrease / 100);
+                const newRevenue = newAvgPrice * newUnits;
+                const newProfit = newRevenue - newCosts;
+                const newMargin = (newProfit / newRevenue * 100);
+                
+                // Update after results
+                const afterResults = document.getElementById('afterResults');
+                afterResults.innerHTML = `
+                    <strong>Lucro:</strong> R$ ${newProfit.toFixed(2)}<br>
+                    <strong>Margem:</strong> ${newMargin.toFixed(1)}%<br>
+                    <strong>Preço médio:</strong> R$ ${newAvgPrice.toFixed(2)}
+                `;
+                
+                // Summary comparison
+                const profitIncrease = ((newProfit - beforeProfit) / beforeProfit * 100);
+                const revenueIncrease = ((newRevenue - beforeRevenue) / beforeRevenue * 100);
+                
+                const comparisonSummary = document.getElementById('comparisonSummary');
+                comparisonSummary.innerHTML = `
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+                        <div>
+                            <h4>Aumento no Lucro</h4>
+                            <div style="font-size: 2em; color: #28a745;">+${profitIncrease.toFixed(1)}%</div>
+                        </div>
+                        <div>
+                            <h4>Aumento na Receita</h4>
+                            <div style="font-size: 2em; color: #2e8b57;">+${revenueIncrease.toFixed(1)}%</div>
+                        </div>
+                        <div>
+                            <h4>Lucro Adicional/Mês</h4>
+                            <div style="font-size: 2em; color: #ff6b6b;">R$ ${(newProfit - beforeProfit).toFixed(2)}</div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // Initialize calculations on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            calculateCosts();
+            calculatePricing();
+        });
+    </script>
+</body>
+</html>
